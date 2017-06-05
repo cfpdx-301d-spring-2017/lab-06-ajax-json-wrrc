@@ -44,8 +44,8 @@ Article.loadAll = function(rawData) {
 }
 
 Article.runWhenDone = function (data) {
-  Article.loadAll( data );
   localStorage.setItem('rawData', JSON.stringify(data));
+  Article.loadAll( data );
   articleView.initIndexPage();
 }
 
@@ -53,28 +53,31 @@ Article.runWhenErr = function ( err ) {
   console.error( 'error', err );
 }
 
-// This function will retrieve the data from either a local or remote source,
-// and process it, then hand off control to the View.
-Article.fetchAll = function() {
-  if (localStorage.rawData) {
-    // When rawData is already in localStorage,
-    // we can load it with the .loadAll function above,
-    // and then render the index page (using the proper method on the articleView object).
-    Article.loadAll( JSON.parse(localStorage.rawData) );
-    //DONE: What do we pass in to loadAll()?
-    //DONE: What method do we call to render the index page?
+Article.getDBData = function () {
+  $.ajax({
+    type: 'GET',
+    url: './data/hackerIpsum.json',
+    success: Article.runWhenDone,
+    error: Article.runWhenErr
+  })
+}
+
+Article.checkETag = function () {
+  $.ajax({
+    type: 'HEAD',
+    url: './data/hackerIpsum.json',
+    success: Article.validateETag,
+    error: Article.runWhenErr
+  })
+}
+
+Article.validateETag = function(data, message, xhr) {
+  var eTag = xhr.getResponseHeader('ETag');
+  if ( eTag === JSON.parse(localStorage.getItem('lsETag'))){
+    Article.loadAll( JSON.parse(localStorage.rawData) )
     articleView.initIndexPage();
   } else {
-    // DONE: When we don't already have the rawData,
-    // we need to retrieve the JSON file from the server with AJAX (which jQuery method is best for this?),
-    // cache it in localStorage so we can skip the server call next time,
-    // then load all the data into Article.all with the .loadAll function above,
-    // and then render the index page.
-    $.ajax({
-      type: 'GET',
-      url: './data/hackerIpsum.json',
-      success: Article.runWhenDone,
-      error: Article.runWhenErr
-    })
+    localStorage.setItem('lsETag', JSON.stringify(eTag));
+    Article.getDBData();
   }
 }
