@@ -109,11 +109,7 @@ articleView.create = function() {
 articleView.initIndexPage = function() {
   Article.all.forEach(function(article) {
     $('#articles').append(article.toHtml())
-    console.log('init is initing');
   });
-
-  Article.fetchAll();
-
   articleView.populateFilters();
   articleView.handleCategoryFilter();
   articleView.handleAuthorFilter();
