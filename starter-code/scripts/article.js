@@ -1,5 +1,6 @@
 'use strict';
 
+
 function Article(rawDataObj) {
   this.author = rawDataObj.author;
   this.authorUrl = rawDataObj.authorUrl;
@@ -48,33 +49,28 @@ Article.loadAll = function (rawData) {
 // and process it, then hand off control to the View.
 Article.fetchAll = function () {
   if (localStorage.articles) {
-    var currentETag = $.ajax({ type: 'HEAD', url: './index.html', success: eTag }).always( function () {
-      console.log('bro');
-    });
-    //check if current etag === stored etag
-    if (currentETag === storedETag) {
-      // When rawData is already in localStorage,
-      // we can load it with the .loadAll function above,
-      // and then render the index page (using the proper method on the articleView object).
-      Article.loadAll(JSON.parse(localStorage.articles)); 
-      //TODO: What do we pass in to loadAll()?
-      //TODO: What method do we call to render the index page?
-      articleView.initIndexPage();
-    }
+    // When rawData is already in localStorage,
+    // we can load it with the .loadAll function above,
+    // and then render the index page (using the proper method on the articleView object).
+    //TODO: What do we pass in to loadAll()?
+    //TODO: What method do we call to render the index page?
+    $.ajax({ type: 'HEAD', url: './index.html', success: eTagCheck });
+
   } else {
     // TODO: When we don't already have the rawData,
     // we need to retrieve the JSON file from the server with AJAX (which jQuery method is best for this?),
-    $.ajax({ type: 'GET', url: './data/hackerIpsum.json', success: runWhenDone, error: runWhenFails });
-    var storedETag = $.ajax({ type: 'HEAD', url: './index.html', success: eTag });
     // cache it in localStorage so we can skip the server call next time,
+
+    $.ajax({ type: 'GET', url: './data/hackerIpsum.json', success: runWhenDone, error: runWhenFails });
   }
 }
 
-function runWhenDone(rawData) {
-  localStorage.setItem('articles', JSON.stringify(rawData));
+function runWhenDone(rawData, message, res) {
   // then load all the data into Article.all with the .loadAll function above,
-  Article.loadAll(JSON.parse(localStorage.articles));
   // and then render the index page.
+  localStorage.setItem('articles', JSON.stringify(rawData));
+  Article.loadAll(JSON.parse(localStorage.articles));
+  localStorage.setItem('eTag', res.getResponseHeader('eTag'));
   articleView.initIndexPage();
 }
 
@@ -83,8 +79,24 @@ function runWhenFails(err) {
 }
 
 //getting the etag
-function eTag(data, message, res) {
+function eTagCheck(data, message, res) {
   var eTag = res.getResponseHeader('eTag');
-  console.log('hey');
-  return eTag;
+  console.log(eTag);
+  var storedETag = localStorage.getItem('eTag');
+  console.log(storedETag);
+  if (eTag === storedETag) {
+    Article.loadAll(JSON.parse(localStorage.articles));
+    articleView.initIndexPage();
+  }
+  else {
+    $.ajax({ type: 'GET', url: './data/hackerIpsum.json', success: runWhenDone, error: runWhenFails });
+  }
 }
+
+
+// function storedETagCheck(data, message, res) {
+//   storedETag = res.getResponseHeader('eTag');
+//   console.log(storedETag);
+//   return storedETag;
+// }
+
