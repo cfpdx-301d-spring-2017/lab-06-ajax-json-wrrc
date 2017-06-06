@@ -60,14 +60,13 @@ Article.fetchAll = function () {
     // TODO: When we don't already have the rawData,
     // we need to retrieve the JSON file from the server with AJAX (which jQuery method is best for this?),
     // cache it in localStorage so we can skip the server call next time,
-
+    // then load all the data into Article.all with the .loadAll function above,
+    // and then render the index page.
     $.ajax({ type: 'GET', url: './data/hackerIpsum.json', success: runWhenDone, error: runWhenFails });
   }
 }
 
 function runWhenDone(rawData, message, res) {
-  // then load all the data into Article.all with the .loadAll function above,
-  // and then render the index page.
   localStorage.setItem('articles', JSON.stringify(rawData));
   Article.loadAll(JSON.parse(localStorage.articles));
   localStorage.setItem('eTag', res.getResponseHeader('eTag'));
@@ -78,7 +77,6 @@ function runWhenFails(err) {
   console.log('error: ', err);
 }
 
-//getting the etag
 function eTagCheck(data, message, res) {
   var eTag = res.getResponseHeader('eTag');
   console.log(eTag);
@@ -92,11 +90,3 @@ function eTagCheck(data, message, res) {
     $.ajax({ type: 'GET', url: './data/hackerIpsum.json', success: runWhenDone, error: runWhenFails });
   }
 }
-
-
-// function storedETagCheck(data, message, res) {
-//   storedETag = res.getResponseHeader('eTag');
-//   console.log(storedETag);
-//   return storedETag;
-// }
-
