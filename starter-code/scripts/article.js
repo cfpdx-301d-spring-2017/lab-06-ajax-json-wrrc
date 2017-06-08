@@ -54,7 +54,7 @@ Article.fetchAll = function () {
     // and then render the index page (using the proper method on the articleView object).
     //TODO: What do we pass in to loadAll()?
     //TODO: What method do we call to render the index page?
-    $.ajax({ type: 'HEAD', url: './index.html', success: eTagCheck });
+    $.ajax({ type: 'HEAD', url: './index.html', success: Article.eTagCheck });
 
   } else {
     // TODO: When we don't already have the rawData,
@@ -62,22 +62,22 @@ Article.fetchAll = function () {
     // cache it in localStorage so we can skip the server call next time,
     // then load all the data into Article.all with the .loadAll function above,
     // and then render the index page.
-    $.ajax({ type: 'GET', url: './data/hackerIpsum.json', success: runWhenDone, error: runWhenFails });
+    $.ajax({ type: 'GET', url: './data/hackerIpsum.json', success: Article.runWhenDone, error: Article.runWhenFails });
   }
 }
 
-function runWhenDone(rawData, message, res) {
+Article.runWhenDone = function(rawData, message, res) {
   localStorage.setItem('articles', JSON.stringify(rawData));
   Article.loadAll(JSON.parse(localStorage.articles));
   localStorage.setItem('eTag', res.getResponseHeader('eTag'));
   articleView.initIndexPage();
 }
 
-function runWhenFails(err) {
+Article.runWhenFails = function(err) {
   console.log('error: ', err);
 }
 
-function eTagCheck(data, message, res) {
+Article.eTagCheck = function(data, message, res) {
   var eTag = res.getResponseHeader('eTag');
   console.log(eTag);
   var storedETag = localStorage.getItem('eTag');
@@ -87,6 +87,6 @@ function eTagCheck(data, message, res) {
     articleView.initIndexPage();
   }
   else {
-    $.ajax({ type: 'GET', url: './data/hackerIpsum.json', success: runWhenDone, error: runWhenFails });
+    $.ajax({ type: 'GET', url: './data/hackerIpsum.json', success: Article.runWhenDone, error: Article.runWhenFails });
   }
 }
